@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wordle Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        #game-container {
+            text-align: center;
+        }
+        #word-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+        .letter-box {
+            width: 50px;
+            height: 50px;
+            border: 2px solid #ccc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        #message {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>Wordle Game</h1>
+        <div id="word-grid"></div>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        const WORD_LENGTH = 5;
+        const MAX_GUESSES = 6;
+        const secretWord = 'APPLE'; // 실제 환경에서는 단어 목록에서 무작위로 선택해야 함
+
+        let currentGuess = '';
+        let guesses = [];
+
+        const wordGrid = document.getElementById('word-grid');
+        const messageElement = document.getElementById('message');
+
+        function initializeGrid() {
+            for (let i = 0; i < MAX_GUESSES; i++) {
+                for (let j = 0; j < WORD_LENGTH; j++) {
+                    const letterBox = document.createElement('div');
+                    letterBox.className = 'letter-box';
+                    wordGrid.appendChild(letterBox);
+                }
+            }
+        }
+
+        function updateGrid() {
+            const letterBoxes = wordGrid.children;
+            for (let i = 0; i < MAX_GUESSES; i++) {
+                for (let j = 0; j < WORD_LENGTH; j++) {
+                    const letterBox = letterBoxes[i * WORD_LENGTH + j];
+                    if (i < guesses.length) {
+                        letterBox.textContent = guesses[i][j];
+                        const colors = getColors(guesses[i]);
+                        letterBox.style.backgroundColor = colors[j];
+                    } else if (i === guesses.length && j < currentGuess.length) {
+                        letterBox.textContent = currentGuess[j];
+                        letterBox.style.backgroundColor = '';
+                    } else {
+                        letterBox.textContent = '';
+                        letterBox.style.backgroundColor = '';
+                    }
+                }
+            }
+        }
+
+        function getColors(guess) {
+            const colors = Array(WORD_LENGTH).fill('#787c7e'); // 기본값은 회색
+            const secretLetterCount = {};
+            const guessLetterCount = {};
+
+            // 문자 개수 세기
+            for (let i = 0; i < WORD_LENGTH; i++) {
+                secretLetterCount[secretWord[i]] = (secretLetterCount[secretWord[i]] || 0) + 1;
+                guessLetterCount[guess[i]] = (guessLetterCount[guess[i]] || 0) + 1;
+            }
+
+            // 첫 번째 패스: 정확한 위치 확인 (초록색)
+            for (let i = 0; i < WORD_LENGTH; i++) {
+                if (guess[i] === secretWord[i]) {
+                    colors[i] = '#6aaa64'; // 초록색
+                    secretLetterCount[guess[i]]--;
+                    guessLetterCount[guess[i]]--;
+                }
+            }
+
+            // 두 번째 패스: 단어에 포함되는지 확인 (노란색)
+            for (let i = 0; i < WORD_LENGTH; i++) {
+                if (colors[i] !== '#6aaa64' && secretLetterCount[guess[i]] > 0 && guessLetterCount[guess[i]] > 0) {
+                    colors[i] = '#c9b458'; // 노란색
+                    secretLetterCount[guess[i]]--;
+                    guessLetterCount[guess[i]]--;
+                }
+            }
+
+            return colors;
+        }
+
+        function handleKeyDown(event) {
+            if (guesses.length >= MAX_GUESSES) return;
+
+            if (event.key === 'Enter') {
+                if (currentGuess.length === WORD_LENGTH) {
+                    guesses.push(currentGuess);
+                    if (currentGuess === secretWord) {
+                        messageElement.textContent = '축하합니다! 정답을 맞혔습니다!';
+                    } else if (guesses.length === MAX_GUESSES) {
+                        messageElement.textContent = `Game Over! 정답은 ${secretWord} 입니다.`;
+                    }
+                    currentGuess = '';
+                } else {
+                    messageElement.textContent = '단어는 5글자여야 합니다.';
+                }
+            } else if (event.key === 'Backspace') {
+                currentGuess = currentGuess.slice(0, -1);
+            } else if (/^[A-Za-z]$/.test(event.key) && currentGuess.length < WORD_LENGTH) {
+                currentGuess += event.key.toUpperCase();
+            }
+            updateGrid();
+        }
+
+        initializeGrid();
+        document.addEventListener('keydown', handleKeyDown);
+    </script>
+</body>
+</html>
