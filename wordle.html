@@ -3,59 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <link rel="icon" href="favicon.png">
     <title>Wordle Game</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f0f0;
-        }
-        #game-container {
-            text-align: center;
-        }
-        #word-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 50px);
-            gap: 5px;
-            margin: 0 auto 20px;
-            max-width: 275px; /* Fixed width to match grid size */
-            outline: none; /* Remove default focus style (outline) */
-        }
-        .letter-box {
-            width: 50px;
-            height: 50px;
-            border: 2px solid #ccc;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 20px;
-            font-weight: bold;
-        }
-        #message {
-            margin-top: 20px;
-            font-weight: bold;
-        }
-        #new-game-btn {
-            margin-top: 20px;
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        #definition {
-            margin-top: 10px;
-            font-style: italic;
-            color: #555;
-            max-width: 275px; /* Ensure definition does not exceed the grid width */
-            text-align: center;
-            word-wrap: break-word; /* Handle long words gracefully */
-        }
-    </style>
+    <link rel="icon" href="favicon.png">
+    <link rel="stylesheet" href="styles.css">
+    <style></style>
 </head>
 <body>
     <div id="game-container">
@@ -104,11 +55,11 @@
                 return 'Definition not found.';
             }
         } else {
-            // 응답이 200이 아닌 경우에도 JSON으로 파싱하여 처리
+            // Parse as JSON even if the response is not 200
             const errorData = await response.json();
             if (errorData.title === "No Definitions Found") {
                 if (word.endsWith('s')) {
-                    // 단어가 s로 끝날 경우 s를 제거하고 다시 검색
+                    // If the word ends with 's', remove it and search again
                     const singularWord = word.slice(0, -1);
                     return await getDefinition(singularWord);
                 }
