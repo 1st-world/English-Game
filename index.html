@@ -6,31 +6,32 @@
     <title>Wordle Game</title>
     <link rel="icon" href="favicon.png">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://hangeul.pstatic.net/hangeul_static/css/nanum-square-neo.css">
     <style></style>
 </head>
 <body>
     <div class="container">
         <h1>Wordle Game</h1>
-        <p>6번의 기회 안에 5자 영단어를 추측하세요!</p>
-        <a href="#" class="btn btn-secondary" id="howtoPlay">How to Play</a>
-        <a href="#" class="btn btn-primary" id="play">Play</a>
+        <p>6번의 기회 안에 5글자 영단어를 추측해 보세요!</p>
+        <a href="#" class="btn btn-howtoPlay" id="howtoPlay">How to Play</a>
+        <a href="#" class="btn btn-play" id="play">Play</a>
     </div>
 
     <div class="dialog-overlay" id="howtoPlayDialog">
         <div class="dialog-content">
             <h2>How to Play</h2>
             <ul>
-                <li>5글자 영단어를 추측합니다.</li>
-                <li>입력한 글자 위치의 색상이 힌트입니다:
+                <li>5글자의 영단어를 추측해야 합니다.</li>
+                <li>추측한 단어의 정확성을 글자마다 색상으로 표시:
                     <ul>
                         <li>초록색: 정확한 위치의 정확한 글자</li>
                         <li>노란색: 단어에 포함되지만 위치가 다른 글자</li>
                         <li>회색: 단어에 포함되지 않는 글자</li>
                     </ul>
                 </li>
-                <li>단어 입력은 최대 6번까지 가능합니다!</li>
+                <li>단어 입력은 최대 6번까지 가능합니다.</li>
             </ul>
-            <button class="close-btn" id="closeHowtoPlayDialog">닫기</button>
+            <button class="btn btn-close" onclick="hideDialog(this)">닫기</button>
         </div>
     </div>
 
@@ -38,8 +39,8 @@
         <div class="dialog-content">
             <h2>키보드가 필요합니다!</h2>
             <p>이 게임을 플레이하려면 키보드가 필요합니다. 아직 가상 키보드를 지원하지 않아 모바일 환경에서는 플레이가 어렵습니다.</p>
-            <button class="close-btn" id="closeKeyboardRequiredDialog" style="margin-right: 1rem;">닫기</button>
-            <button class="go-btn" id="playAnyway">그래도 플레이!</button>
+            <button class="btn btn-close" style="margin-right: 0.5rem;" onclick="hideDialog(this)">닫기</button>
+            <button class="btn btn-go" id="playAnyway">그래도 플레이!</button>
         </div>
     </div>
 
@@ -48,8 +49,6 @@
         const playBtn = document.getElementById('play');
         const howtoPlayDialog = document.getElementById('howtoPlayDialog');
         const keyboardRequiredDialog = document.getElementById('keyboardRequiredDialog');
-        const closeHowtoPlayDialogBtn = document.getElementById('closeHowtoPlayDialog');
-        const closeKeyboardRequiredDialogBtn = document.getElementById('closeKeyboardRequiredDialog');
         const playAnywayBtn = document.getElementById('playAnyway');
 
         function showDialog(dialog) {
@@ -57,7 +56,9 @@
             dialog.style.opacity = '1';
         }
 
-        function hideDialog(dialog) {
+        function hideDialog(element) {
+            const dialog = element.closest('.dialog-overlay') || element;
+            
             dialog.style.visibility = 'hidden';
             dialog.style.opacity = '0';
         }
@@ -65,14 +66,6 @@
         howtoPlayBtn.addEventListener('click', function(e) {
             e.preventDefault();
             showDialog(howtoPlayDialog);
-        });
-
-        closeHowtoPlayDialogBtn.addEventListener('click', function() {
-            hideDialog(howtoPlayDialog);
-        });
-
-        closeKeyboardRequiredDialogBtn.addEventListener('click', function() {
-            hideDialog(keyboardRequiredDialog);
         });
 
         howtoPlayDialog.addEventListener('click', function(e) {
@@ -88,16 +81,16 @@
         });
 
         function isMobileDevice() {
-            return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
-        }
+            const userAgent = navigator.userAgent.toLowerCase();
+            const isSmallScreen = window.innerWidth <= 500;
+            const isMobileUA = /ip(hone|od|ad)|android|blackberry|iemobile|windows (ce|phone|mobile)/i.test(userAgent);
 
-        function isKeyboardDetected() {
-            return 'ontouchstart' in window ? false : true;
+            return isSmallScreen || isMobileUA || (typeof window.orientation !== "undefined");
         }
 
         playBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            if (isMobileDevice() && !isKeyboardDetected()) {
+            if (isMobileDevice()) {
                 showDialog(keyboardRequiredDialog);
             } else {
                 window.location.href = 'wordle.html';
