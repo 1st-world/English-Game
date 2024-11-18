@@ -45,13 +45,25 @@ p {
     background-color: #3498db;
 }
 .btn-howtoPlay {
-    background-color: #1bb65c;
+    background-color: #f39c12;
 }
 .btn-close {
     background-color: #e74c3c;
 }
 .btn-go {
     background-color: #3498db;
+}
+.btn-back {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background-color: #3498db;
+}
+.btn-help {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background-color: #f39c12;
 }
 .dialog-overlay {
     position: fixed;

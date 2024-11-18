@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="description" content="Play Wordle Game! Guess the 5-letter word in 6 tries.">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wordle Game</title>
     <link rel="icon" href="favicon.png">
@@ -10,6 +11,9 @@
     <style></style>
 </head>
 <body>
+    <button class="btn btn-back" id="back-btn">Back</button>
+    <button class="btn btn-help" id="help-btn">Help</button>
+
     <div id="game-container">
         <h1>Wordle Game</h1>
         <div id="word-grid" tabindex="0"></div> <!-- Add tabindex to make it focusable -->
@@ -18,7 +22,56 @@
         <button id="new-game-btn">New Game</button>
     </div>
 
+    <div class="dialog-overlay" id="howtoPlayDialog">
+        <div class="dialog-content">
+            <h2>How to Play</h2>
+            <ul>
+                <li>5글자의 영단어를 추측해야 합니다.</li>
+                <li>추측한 단어의 정확성을 글자마다 색상으로 표시:
+                    <ul>
+                        <li>초록색: 정확한 위치의 정확한 글자</li>
+                        <li>노란색: 단어에 포함되지만 위치가 다른 글자</li>
+                        <li>회색: 단어에 포함되지 않는 글자</li>
+                    </ul>
+                </li>
+                <li>단어 입력은 최대 6번까지 가능합니다.</li>
+            </ul>
+            <button class="btn btn-close" onclick="hideDialog(this)">닫기</button>
+        </div>
+    </div>
+
     <script>
+        const backBtn = document.getElementById('back-btn');
+        const helpBtn = document.getElementById('help-btn');
+        const howtoPlayDialog = document.getElementById('howtoPlayDialog');
+
+        function showDialog(dialog) {
+            dialog.style.visibility = 'visible';
+            dialog.style.opacity = '1';
+        }
+
+        function hideDialog(element) {
+            const dialog = element.closest('.dialog-overlay') || element;
+            
+            dialog.style.visibility = 'hidden';
+            dialog.style.opacity = '0';
+        }
+
+        backBtn.addEventListener('click', function() {
+            window.history.back();
+        });
+
+        helpBtn.addEventListener('click', function(event) {
+            event.preventDefault();
+            showDialog(howtoPlayDialog);
+        });
+
+        howtoPlayDialog.addEventListener('click', function(event) {
+            if (event.target === howtoPlayDialog) {
+                hideDialog(howtoPlayDialog);
+            }
+        });
+
         const WORD_LENGTH = 5;
         const MAX_GUESSES = 6;
         let secretWord = '';
@@ -77,6 +130,8 @@
         }
 
         async function initializeGame() {
+            newGameBtn.disabled = true;
+            newGameBtn.style.cursor = 'default';
             messageElement.textContent = 'Now Loading...';
             definitionElement.textContent = '';
             while (true) {
@@ -91,9 +146,9 @@
             guesses = [];
             messageElement.textContent = '';
             initializeGrid();
-            updateGrid();
-            // Move focus to word-grid to avoid button focus issues
-            wordGrid.focus();
+            wordGrid.focus();   // Move focus to word-grid to avoid button focus issues
+            newGameBtn.disabled = false;
+            newGameBtn.style.cursor = 'pointer';
         }
 
         function initializeGrid() {
@@ -163,9 +218,11 @@
         }
 
         function handleKeyDown(event) {
+            let key = event.key || (event.keyCode !== undefined ? String.fromCharCode(event.keyCode) : '');
+
             if (guesses.length >= MAX_GUESSES) return;
 
-            if (event.key === 'Enter') {
+            if (key === 'Enter' || key === 'Space' || key === ' ') {
                 messageElement.textContent = '';
                 if (currentGuess.length === WORD_LENGTH) {
                     guesses.push(currentGuess);
@@ -178,18 +235,17 @@
                 } else {
                     messageElement.textContent = '단어는 5글자여야 합니다.';
                 }
-            } else if (event.key === 'Backspace') {
+            } else if (key === 'Backspace') {
                 currentGuess = currentGuess.slice(0, -1);
-            } else if (/^[A-Za-z]$/.test(event.key) && currentGuess.length < WORD_LENGTH) {
-                currentGuess += event.key.toUpperCase();
+            } else if (/^[A-Za-z]$/.test(key) && currentGuess.length < WORD_LENGTH) {
+                currentGuess += key.toUpperCase();
             }
             updateGrid();
         }
 
         newGameBtn.addEventListener('click', () => {
             initializeGame();
-            // Move focus to word-grid to avoid button focus issues
-            wordGrid.focus();
+            wordGrid.focus();   // Move focus to word-grid to avoid button focus issues
         });
 
         document.addEventListener('keydown', handleKeyDown);
