@@ -4,16 +4,18 @@
 
 ## 프로젝트 개요
 
-**Wordle**은 주어진 6번의 기회를 통해 5글자로 이루어진 단어를 추측하는 게임입니다. 각 추측에 대해 단어의 위치와 정확성을 색상으로 피드백하여 사용자가 올바른 단어를 맞힐 수 있도록 도와줍니다. 이 프로젝트는 Wordle의 기본 규칙을 따르며, 라운드가 종료되면 정답 단어와 그 의미를 함께 제공함으로써 교육적인 효과를 기대합니다.
+**Wordle**은 주어진 6번의 기회를 통해 특정 글자 수의 단어를 추측하는 게임입니다. 각 추측에 대해 단어의 위치와 정확성을 색상으로 피드백하여 사용자가 올바른 단어를 맞힐 수 있게끔 합니다. 이 프로젝트는 Wordle의 기본 규칙을 따르며, 라운드가 종료되면 정답 단어와 사전적 의미를 함께 제공함으로써 교육적 효과를 기대할 수 있습니다.
 
 ## 규칙
 
 - 무작위로 선택된 5글자의 영단어를 6번의 기회 안에 추측해야 합니다.
 
 - 추측한 단어의 정확성을 글자마다 색상으로 표시:
-  - **초록색**: 글자와 위치가 모두 정확합니다.
-  - **노란색**: 단어에 포함되지만 위치가 다른 글자입니다.
-  - **회색**: 단어에 포함되지 않는 글자입니다.
+  - <span style="width: 20px; height: 20px; display: inline-block; vertical-align: middle; margin-right: 10px; background-color: #6aaa64;"></span>**녹색**: 글자와 위치가 모두 정확합니다.
+  - <span style="width: 20px; height: 20px; display: inline-block; vertical-align: middle; margin-right: 10px; background-color: #c9b458;"></span>**황색**: 단어에 포함되지만 위치가 다른 글자입니다.
+  - <span style="width: 20px; height: 20px; display: inline-block; vertical-align: middle; margin-right: 10px; background-color: #787c7e;"></span>**회색**: 단어에 포함되지 않는 글자입니다.
+
+    ![Sample Image](./sample_play_result.png)
 
 ## 실행 방법
 
@@ -28,6 +30,6 @@
 
 ## 외부 API
 
-- **무작위 단어 선택 기능**: [Random word API](https://random-word-api.herokuapp.com/home) 사용
+- **무작위 단어 선택 기능**: [Random Word Generator API](https://random-word-api.vercel.app/) 사용
 
 - **단어 의미 검색 기능**: [Free Dictionary API](https://dictionaryapi.dev/) 사용
