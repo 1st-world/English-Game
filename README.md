@@ -11,9 +11,9 @@
 - 무작위로 선택된 5글자의 영단어를 6번의 기회 안에 추측해야 합니다.
 
 - 추측한 단어의 정확성을 글자마다 색상으로 표시:
-  - <span style="width: 20px; height: 20px; display: inline-block; vertical-align: middle; margin-right: 10px; background-color: #6aaa64;"></span>**녹색**: 글자와 위치가 모두 정확합니다.
-  - <span style="width: 20px; height: 20px; display: inline-block; vertical-align: middle; margin-right: 10px; background-color: #c9b458;"></span>**황색**: 단어에 포함되지만 위치가 다른 글자입니다.
-  - <span style="width: 20px; height: 20px; display: inline-block; vertical-align: middle; margin-right: 10px; background-color: #787c7e;"></span>**회색**: 단어에 포함되지 않는 글자입니다.
+  - **녹색**: 글자와 위치가 모두 정확합니다.
+  - **황색**: 단어에 포함되지만 위치가 다른 글자입니다.
+  - **회색**: 단어에 포함되지 않는 글자입니다.
 
     ![Sample Image](./sample_play_result.png)
 
@@ -21,7 +21,8 @@
 
 이 프로젝트를 로컬에서 실행하거나, GitHub Pages를 통해 웹 브라우저에서 바로 플레이할 수 있습니다.
    
-- [GitHub Pages에서 바로 실행하기](https://1st-world.github.io/English-Game/)
+- [**GitHub Pages에서 바로 실행하기**](https://1st-world.github.io/English-Game/)
+    - 이제 가상 키보드를 지원하여 모바일 환경에서도 플레이 가능합니다.
 
 - 로컬에서 실행하기
     - 이 저장소를 클론하거나 다운로드합니다.

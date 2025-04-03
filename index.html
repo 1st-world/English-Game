@@ -14,8 +14,8 @@
     <div class="container">
         <h1>Wordle Game</h1>
         <p>6번의 기회 안에 5글자 영단어를 추측해 보세요!</p>
-        <a href="#" class="btn btn-howtoPlay" id="howtoPlay">How to Play</a>
-        <a href="#" class="btn btn-play" id="play">Play</a>
+        <button class="btn btn-howtoPlay" id="howtoPlay">How to Play</a>
+        <button class="btn btn-play" id="play">Play</a>
     </div>
 
     <div class="dialog-overlay" id="howtoPlayDialog">
@@ -36,10 +36,10 @@
         </div>
     </div>
 
-    <div class="dialog-overlay" id="keyboardRequiredDialog">
+    <div class="dialog-overlay" id="bigScreenRequiredDialog">
         <div class="dialog-content">
-            <h2>키보드가 필요합니다!</h2>
-            <p>이 게임을 플레이하려면 키보드가 필요합니다. 아직 가상 키보드를 지원하지 않아 모바일 환경에서는 플레이가 어렵습니다.</p>
+            <h2>더 큰 화면이 필요합니다!</h2>
+            <p>현재 사용 중인 화면의 크기가 작아 쾌적하게 플레이하기 어려울 수 있습니다.</p>
             <button class="btn btn-close" style="margin-right: 0.5rem;" onclick="hideDialog(this)">닫기</button>
             <button class="btn btn-go" id="playAnyway">그래도 플레이!</button>
         </div>
@@ -49,7 +49,7 @@
         const howtoPlayBtn = document.getElementById('howtoPlay');
         const playBtn = document.getElementById('play');
         const howtoPlayDialog = document.getElementById('howtoPlayDialog');
-        const keyboardRequiredDialog = document.getElementById('keyboardRequiredDialog');
+        const bigScreenRequiredDialog = document.getElementById('bigScreenRequiredDialog');
         const playAnywayBtn = document.getElementById('playAnyway');
 
         function showDialog(dialog) {
@@ -75,9 +75,9 @@
             }
         });
 
-        keyboardRequiredDialog.addEventListener('click', function(e) {
-            if (e.target === keyboardRequiredDialog) {
-                hideDialog(keyboardRequiredDialog);
+        bigScreenRequiredDialog.addEventListener('click', function(e) {
+            if (e.target === bigScreenRequiredDialog) {
+                hideDialog(bigScreenRequiredDialog);
             }
         });
 
@@ -89,10 +89,9 @@
             return isSmallScreen || isMobileUA || (typeof window.orientation !== "undefined");
         }
 
-        playBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            if (isMobileDevice()) {
-                showDialog(keyboardRequiredDialog);
+        playBtn.addEventListener('click', function() {
+            if (window.innerWidth <= 500 || window.innerHeight <= 650) {
+                showDialog(bigScreenRequiredDialog);
             } else {
                 window.location.href = 'wordle.html';
             }

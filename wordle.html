@@ -16,10 +16,46 @@
 
     <div id="game-container">
         <h1>Wordle Game</h1>
-        <div id="word-grid" tabindex="0"></div> <!-- Add tabindex to make it focusable -->
+        <div id="word-grid" tabindex="0"></div>
         <div id="message"></div>
         <div id="definition"></div>
-        <button id="new-game-btn">New Game</button>
+        <div class="keyboard" id="keyboard">
+            <div class="row">
+              <button class="key" tabindex="-1" data-key="q">Q</button>
+              <button class="key" tabindex="-1" data-key="w">W</button>
+              <button class="key" tabindex="-1" data-key="e">E</button>
+              <button class="key" tabindex="-1" data-key="r">R</button>
+              <button class="key" tabindex="-1" data-key="t">T</button>
+              <button class="key" tabindex="-1" data-key="y">Y</button>
+              <button class="key" tabindex="-1" data-key="u">U</button>
+              <button class="key" tabindex="-1" data-key="i">I</button>
+              <button class="key" tabindex="-1" data-key="o">O</button>
+              <button class="key" tabindex="-1" data-key="p">P</button>
+            </div>
+            <div class="row">
+              <button class="key" tabindex="-1" data-key="a">A</button>
+              <button class="key" tabindex="-1" data-key="s">S</button>
+              <button class="key" tabindex="-1" data-key="d">D</button>
+              <button class="key" tabindex="-1" data-key="f">F</button>
+              <button class="key" tabindex="-1" data-key="g">G</button>
+              <button class="key" tabindex="-1" data-key="h">H</button>
+              <button class="key" tabindex="-1" data-key="j">J</button>
+              <button class="key" tabindex="-1" data-key="k">K</button>
+              <button class="key" tabindex="-1" data-key="l">L</button>
+            </div>
+            <div class="row">
+              <button class="key special" tabindex="-1" data-key="Backspace">⌫</button>
+              <button class="key" tabindex="-1" data-key="z">Z</button>
+              <button class="key" tabindex="-1" data-key="x">X</button>
+              <button class="key" tabindex="-1" data-key="c">C</button>
+              <button class="key" tabindex="-1" data-key="v">V</button>
+              <button class="key" tabindex="-1" data-key="b">B</button>
+              <button class="key" tabindex="-1" data-key="n">N</button>
+              <button class="key" tabindex="-1" data-key="m">M</button>
+              <button class="key special" tabindex="-1" data-key="Enter">Enter</button>
+            </div>
+        </div>
+        <button class="key" id="new-game-btn">New Game</button>
     </div>
 
     <div class="dialog-overlay" id="howtoPlayDialog">
@@ -174,12 +210,16 @@
                         letterBox.textContent = guesses[i][j];
                         const colors = getColors(guesses[i]);
                         letterBox.style.backgroundColor = colors[j];
+                        letterBox.style.borderColor = colors[j];
+                        letterBox.style.color = 'white';
                     } else if (i === guesses.length && j < currentGuess.length) {
                         letterBox.textContent = currentGuess[j];
                         letterBox.style.backgroundColor = '';
+                        letterBox.style.borderColor = '#787c7e';
                     } else {
                         letterBox.textContent = '';
                         letterBox.style.backgroundColor = '';
+                        letterBox.style.borderColor = '';
                     }
                 }
             }
@@ -220,6 +260,7 @@
         function handleKeyDown(event) {
             let key = event.key || (event.keyCode !== undefined ? String.fromCharCode(event.keyCode) : '');
 
+            if (key === 'Escape') return hideDialog(howtoPlayDialog);
             if (guesses.length >= MAX_GUESSES || isGameEnd) return;
 
             if (key === 'Enter' || key === 'Space' || key === ' ') {
@@ -233,7 +274,7 @@
                     }
                     currentGuess = '';
                 } else {
-                    messageElement.textContent = '단어는 5글자여야 합니다.';
+                    messageElement.textContent = `단어는 ${WORD_LENGTH}글자여야 합니다.`;
                 }
             } else if (key === 'Backspace') {
                 currentGuess = currentGuess.slice(0, -1);
@@ -246,6 +287,13 @@
         newGameBtn.addEventListener('click', () => {
             initializeGame();
             wordGrid.focus();   // Move focus to word-grid to avoid button focus issues
+        });
+
+        document.querySelectorAll('.key').forEach(button => {
+            button.addEventListener('click', (event) => {
+                const keyboardEvent = new KeyboardEvent('keydown', {key: event.target.getAttribute('data-key')});
+                handleKeyDown(keyboardEvent);
+            });
         });
 
         document.addEventListener('keydown', handleKeyDown);
