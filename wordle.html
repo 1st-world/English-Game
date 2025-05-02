@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="description" content="Play Wordle Game! Guess the 5-letter word in 6 tries.">
+    <meta name="description" content="Play Wordle Game! Guess the English word in 6 tries.">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wordle Game</title>
     <link rel="icon" href="favicon.png">
@@ -108,7 +108,7 @@
             }
         });
 
-        const WORD_LENGTH = 5;
+        let WORD_LENGTH = 5;
         const MAX_GUESSES = 6;
         let secretWord = '';
         let secretWordDefinition = '';
@@ -119,6 +119,7 @@
         const wordGrid = document.getElementById('word-grid');
         const messageElement = document.getElementById('message');
         const definitionElement = document.getElementById('definition');
+        const keyboardElement = document.getElementById('keyboard');
         const newGameBtn = document.getElementById('new-game-btn');
 
         async function getRandomWord() {
@@ -191,14 +192,41 @@
         }
 
         function initializeGrid() {
-            wordGrid.innerHTML = '';
-            for (let i = 0; i < MAX_GUESSES; i++) {
-                for (let j = 0; j < WORD_LENGTH; j++) {
-                    const letterBox = document.createElement('div');
-                    letterBox.className = 'letter-box';
-                    wordGrid.appendChild(letterBox);
+            wordGrid.classList.add('flip-out-ver-right');
+            wordGrid.addEventListener('animationend', handleAnimationEnd, { once: true });
+
+            function handleAnimationEnd() {
+                wordGrid.innerHTML = '';
+                wordGrid.style.setProperty('--word-length', WORD_LENGTH);
+                updateLetterBoxSize();
+
+                for (let i = 0; i < MAX_GUESSES; i++) {
+                    for (let j = 0; j < WORD_LENGTH; j++) {
+                        const letterBox = document.createElement('div');
+                        letterBox.className = 'letter-box';
+                        wordGrid.appendChild(letterBox);
+                    }
                 }
+
+                wordGrid.classList.remove('flip-out-ver-right');
+                wordGrid.classList.add('flip-in-ver-right');
+                wordGrid.addEventListener('animationend', () => {
+                    wordGrid.classList.remove('flip-in-ver-right');
+                }, { once: true });
             }
+        }
+
+        function updateLetterBoxSize() {
+            const totalPadding = 20;
+            const totalGap = (WORD_LENGTH - 1) * parseFloat(getComputedStyle(wordGrid).getPropertyValue('gap').trim());
+            const minWidth = 30;
+            const maxWidth = 50;
+            
+            let boxWidth = Math.floor((wordGrid.parentElement.clientWidth - totalPadding - totalGap) / WORD_LENGTH);
+
+            boxWidth = Math.max(minWidth, Math.min(maxWidth, boxWidth));
+
+            document.documentElement.style.setProperty('--letter-box-size', `${boxWidth}px`);
         }
 
         function updateGrid() {
@@ -297,6 +325,8 @@
         });
 
         document.addEventListener('keydown', handleKeyDown);
+
+        window.addEventListener('resize', updateLetterBoxSize);
 
         initializeGame();
     </script>
