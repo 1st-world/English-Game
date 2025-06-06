@@ -55,7 +55,7 @@
               <button class="key special" tabindex="-1" data-key="Enter">Enter</button>
             </div>
         </div>
-        <button class="key" id="new-game-btn">New Game</button>
+        <button class="key" id="new-game-btn" onclick="initializeGame()">New Game</button>
     </div>
 
     <div class="dialog-overlay" id="howtoPlayDialog">
@@ -115,6 +115,10 @@
         let currentGuess = '';
         let guesses = [];
         let isGameEnd = true;
+
+        const greenColorCode = '#6aaa64';
+        const yellowColorCode = '#c9b458';
+        const grayColorCode = '#787c7e';
 
         const wordGrid = document.getElementById('word-grid');
         const messageElement = document.getElementById('message');
@@ -184,6 +188,11 @@
             currentGuess = '';
             guesses = [];
             messageElement.textContent = '';
+            document.querySelectorAll('.key').forEach(key => {
+                key.style.backgroundColor = '';
+                key.style.borderColor = '';
+                key.style.color = '';
+            })
             initializeGrid();
             wordGrid.focus();   // Move focus to word-grid to avoid button focus issues
             newGameBtn.disabled = false;
@@ -231,19 +240,24 @@
 
         function updateGrid() {
             const letterBoxes = wordGrid.children;
+            const keyboardState = {};
+
             for (let i = 0; i < MAX_GUESSES; i++) {
                 for (let j = 0; j < WORD_LENGTH; j++) {
                     const letterBox = letterBoxes[i * WORD_LENGTH + j];
                     if (i < guesses.length) {
-                        letterBox.textContent = guesses[i][j];
-                        const colors = getColors(guesses[i]);
-                        letterBox.style.backgroundColor = colors[j];
-                        letterBox.style.borderColor = colors[j];
+                        const letter = guesses[i][j];
+                        const color = getColors(guesses[i])[j];
+                        updateKeyboardState(keyboardState, letter, color)
+
+                        letterBox.textContent = letter;
+                        letterBox.style.backgroundColor = color;
+                        letterBox.style.borderColor = color;
                         letterBox.style.color = 'white';
                     } else if (i === guesses.length && j < currentGuess.length) {
                         letterBox.textContent = currentGuess[j];
                         letterBox.style.backgroundColor = '';
-                        letterBox.style.borderColor = '#787c7e';
+                        letterBox.style.borderColor = grayColorCode;
                     } else {
                         letterBox.textContent = '';
                         letterBox.style.backgroundColor = '';
@@ -251,10 +265,11 @@
                     }
                 }
             }
+            applyKeyboardState(keyboardState);
         }
 
         function getColors(guess) {
-            const colors = Array(WORD_LENGTH).fill('#787c7e');
+            const colors = Array(WORD_LENGTH).fill(grayColorCode);
             const secretLetterCount = {};
 
             for (let i = 0; i < WORD_LENGTH; i++) {
@@ -262,17 +277,39 @@
             }
             for (let i = 0; i < WORD_LENGTH; i++) {
                 if (guess[i] === secretWord[i]) {
-                    colors[i] = '#6aaa64';
+                    colors[i] = greenColorCode;
                     secretLetterCount[guess[i]]--;
                 }
             }
             for (let i = 0; i < WORD_LENGTH; i++) {
-                if (colors[i] !== '#6aaa64' && secretLetterCount[guess[i]] > 0) {
-                    colors[i] = '#c9b458';
+                if (colors[i] !== greenColorCode && secretLetterCount[guess[i]] > 0) {
+                    colors[i] = yellowColorCode;
                     secretLetterCount[guess[i]]--;
                 }
             }
             return colors;
+        }
+
+        function updateKeyboardState(state, letter, color) {
+            const priority = {
+                [greenColorCode]: 3,
+                [yellowColorCode]: 2,
+                [grayColorCode]: 1
+            };
+            if (!state[letter] || priority[color] > priority[state[letter]]) {
+                state[letter] = color;
+            }
+        }
+
+        function applyKeyboardState(state) {
+            for (const [letter, color] of Object.entries(state)) {
+                const key = document.querySelector(`.key[data-key="${letter.toLowerCase()}"]`);
+                if (!key) continue;
+
+                key.style.backgroundColor = color;
+                key.style.borderColor = color;
+                key.style.color = 'white';
+            }
         }
 
         async function handleGameEnd(isWin) {
@@ -311,11 +348,6 @@
             }
             updateGrid();
         }
-
-        newGameBtn.addEventListener('click', () => {
-            initializeGame();
-            wordGrid.focus();   // Move focus to word-grid to avoid button focus issues
-        });
 
         document.querySelectorAll('.key').forEach(button => {
             button.addEventListener('click', (event) => {
