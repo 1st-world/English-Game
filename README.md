@@ -34,3 +34,5 @@
 - **무작위 단어 선택 기능**: [Random Word Generator API](https://random-word-api.vercel.app/) 사용
 
 - **단어 의미 검색 기능**: [Free Dictionary API](https://dictionaryapi.dev/) 사용
+
+- 영단어 목록의 원본은 다음 프로젝트에서 가져왔습니다: [dwyl / English-words](https://github.com/dwyl/english-words)
