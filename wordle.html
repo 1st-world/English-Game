@@ -118,9 +118,9 @@
         let validWordsSet = new Set();
         let validWordsArray = [];
 
-        const greenColorCode = '#6aaa64';
-        const yellowColorCode = '#c9b458';
-        const grayColorCode = '#787c7e';
+        const STATE_CORRECT = 'state-correct';
+        const STATE_PRESENT = 'state-present';
+        const STATE_ABSENT = 'state-absent';
 
         const wordGrid = document.getElementById('word-grid');
         const messageElement = document.getElementById('message');
@@ -142,7 +142,6 @@
                 return true;
             } catch (error) {
                 console.error('System Error in loadLocalWords(): ', error);
-                alert('Failed to load local words list as an error occurred. Please check your files or contact the administrator.');
                 return false;
             }
         }
@@ -162,7 +161,7 @@
                 return data[0].toUpperCase();
             } catch (error) {
                 if (validWordsArray.length > 0) {
-                    console.warn('API Failed or Timeout, now using local words list.');
+                    console.warn('API Failed, using local words list.');
                     const randomIndex = Math.floor(Math.random() * validWordsArray.length);
                     return validWordsArray[randomIndex];
                 }
@@ -185,8 +184,7 @@
                     if (data.title === "No Definitions Found") {
                         if (word.endsWith('s')) {
                             // If the word ends with 's', remove it and search again
-                            const singularWord = word.slice(0, -1);
-                            return await getDefinition(singularWord);
+                            return await getDefinition(word.slice(0, -1));
                         }
                         else {
                             return null;
@@ -206,18 +204,23 @@
             newGameBtn.style.cursor = 'default';
             messageElement.textContent = '';
             definitionElement.textContent = '';
-            let attempts = 0;
+
             if (validWordsSet.size === 0) {
                 const success = await loadLocalWords();
-                if (!success) return;
+                if (!success) {
+                    alert('Failed to load local words list. Please check your files or contact the administrator.');
+                    messageElement.textContent = '오류가 발생했습니다.';
+                    return;
+                }
             }
 
+            let attempts = 0;
             while (true) {
                 attempts++;
                 if (attempts === 1) {
-                    messageElement.textContent = 'Now Loading...';
+                    messageElement.textContent = '로드 중...';
                 } else {
-                    messageElement.textContent = `Now Loading... (Retry: ${attempts})`;
+                    messageElement.textContent = `로드 중... (재시도: ${attempts}회)`;
                 }
                 secretWord = await getRandomWord();
                 if (!validWordsSet.has(secretWord)) continue;
@@ -231,48 +234,60 @@
                         continue;
                     }
                 } catch (error) {
-                    console.warn("Dictionary API seems down. Starting game without definition.");
-                    secretWordDefinition = "⚠️ The definition could not be loaded due to connection issues with the dictionary server.";
+                    console.warn("Dictionary API down. Starting without definition.");
+                    secretWordDefinition = "⚠️ The definition could not be loaded due to connection issues.";
                     break;
                 }
             }
+            initializeGrid();
             currentGuess = '';
             guesses = [];
             messageElement.textContent = '';
             document.querySelectorAll('.key').forEach(key => {
-                key.style.backgroundColor = '';
-                key.style.borderColor = '';
-                key.style.color = '';
+                key.classList.remove(STATE_CORRECT, STATE_PRESENT, STATE_ABSENT);
             })
-            initializeGrid();
-            wordGrid.focus();   // Move focus to word-grid to avoid button focus issues
+            wordGrid.focus();
             newGameBtn.disabled = false;
             newGameBtn.style.cursor = 'pointer';
             isGameEnd = false;
         }
 
         function initializeGrid() {
-            wordGrid.classList.add('flip-out-ver-right');
-            wordGrid.addEventListener('animationend', handleAnimationEnd, { once: true });
+            wordGrid.style.setProperty('--word-length', WORD_LENGTH);
+            updateLetterBoxSize();
 
-            function handleAnimationEnd() {
+            const isEmpty = (wordGrid.children.length === 0) || (guesses.length === 0 && currentGuess === '');
+            if (isEmpty) {
                 wordGrid.innerHTML = '';
-                wordGrid.style.setProperty('--word-length', WORD_LENGTH);
-                updateLetterBoxSize();
-
                 for (let i = 0; i < MAX_GUESSES; i++) {
                     for (let j = 0; j < WORD_LENGTH; j++) {
                         const letterBox = document.createElement('div');
-                        letterBox.className = 'letter-box';
+                        letterBox.className = 'letter-box intro-pop';
+                        letterBox.addEventListener('animationend', () => {
+                            letterBox.classList.remove('intro-pop');
+                        }, { once: true });
                         wordGrid.appendChild(letterBox);
                     }
                 }
-
-                wordGrid.classList.remove('flip-out-ver-right');
-                wordGrid.classList.add('flip-in-ver-right');
-                wordGrid.addEventListener('animationend', () => {
-                    wordGrid.classList.remove('flip-in-ver-right');
-                }, { once: true });
+            } else {
+                const letterBoxes = wordGrid.children;
+                for (let i = 0; i < letterBoxes.length; i++) {
+                    const letterBox = letterBoxes[i];
+                    letterBox.classList.remove('pop', 'intro-pop');
+                    void letterBox.offsetWidth;     // Force a reflow by accessing an offset property
+                    const delay = i * 20;
+                    setTimeout(() => {
+                        letterBox.classList.add('reset-flip');
+                    }, delay);
+                    setTimeout(() => {
+                        letterBox.textContent = '';
+                        letterBox.removeAttribute('data-status');
+                        letterBox.className = 'letter-box reset-flip';
+                    }, delay + 250);    // delay + (animation: reset-filp 0.5s / 2)
+                    letterBox.addEventListener('animationend', () => {
+                        letterBox.classList.remove('reset-flip');
+                    }, { once: true });
+                }
             }
         }
 
@@ -293,31 +308,41 @@
             for (let i = 0; i < MAX_GUESSES; i++) {
                 for (let j = 0; j < WORD_LENGTH; j++) {
                     const letterBox = letterBoxes[i * WORD_LENGTH + j];
+                    const oldText = letterBox.textContent;
+                    letterBox.classList.remove(STATE_CORRECT, STATE_PRESENT, STATE_ABSENT);
+
                     if (i < guesses.length) {
                         const letter = guesses[i][j];
-                        const color = getColors(guesses[i])[j];
-                        updateKeyboardState(keyboardState, letter, color)
-
+                        const stateClass = getStates(guesses[i])[j];
+                        updateKeyboardState(keyboardState, letter, stateClass);
                         letterBox.textContent = letter;
-                        letterBox.style.backgroundColor = color;
-                        letterBox.style.borderColor = color;
-                        letterBox.style.color = 'white';
+                        letterBox.classList.add(stateClass);
+                        letterBox.classList.remove('pop');
+                        letterBox.removeAttribute('data-status');
                     } else if (i === guesses.length && j < currentGuess.length) {
-                        letterBox.textContent = currentGuess[j];
-                        letterBox.style.backgroundColor = '';
-                        letterBox.style.borderColor = grayColorCode;
+                        const letter = currentGuess[j];
+                        letterBox.textContent = letter;
+                        letterBox.setAttribute('data-status', 'filled');
+                        if (oldText !== letter) {
+                            letterBox.classList.remove('pop');  // Remove the class in case it's still present
+                            void letterBox.offsetWidth;         // Force a reflow by accessing an offset property
+                            letterBox.classList.add('pop');
+                            letterBox.addEventListener('animationend', () => {
+                                letterBox.classList.remove('pop');
+                            }, { once: true });
+                        }
                     } else {
                         letterBox.textContent = '';
-                        letterBox.style.backgroundColor = '';
-                        letterBox.style.borderColor = '';
+                        letterBox.removeAttribute('data-status');
+                        letterBox.classList.remove('pop');
                     }
                 }
             }
             applyKeyboardState(keyboardState);
         }
 
-        function getColors(guess) {
-            const colors = Array(WORD_LENGTH).fill(grayColorCode);
+        function getStates(guess) {
+            const states = Array(WORD_LENGTH).fill(STATE_ABSENT);
             const secretLetterCount = {};
 
             for (let i = 0; i < WORD_LENGTH; i++) {
@@ -325,37 +350,36 @@
             }
             for (let i = 0; i < WORD_LENGTH; i++) {
                 if (guess[i] === secretWord[i]) {
-                    colors[i] = greenColorCode;
+                    states[i] = STATE_CORRECT;
                     secretLetterCount[guess[i]]--;
                 }
             }
             for (let i = 0; i < WORD_LENGTH; i++) {
-                if (colors[i] !== greenColorCode && secretLetterCount[guess[i]] > 0) {
-                    colors[i] = yellowColorCode;
+                if (states[i] !== STATE_CORRECT && secretLetterCount[guess[i]] > 0) {
+                    states[i] = STATE_PRESENT;
                     secretLetterCount[guess[i]]--;
                 }
             }
-            return colors;
+            return states;
         }
 
-        function updateKeyboardState(state, letter, color) {
+        function updateKeyboardState(state, letter, stateClass) {
             const priority = {
-                [greenColorCode]: 3,
-                [yellowColorCode]: 2,
-                [grayColorCode]: 1
+                [STATE_CORRECT]: 3,
+                [STATE_PRESENT]: 2,
+                [STATE_ABSENT]: 1
             };
-            if (!state[letter] || priority[color] > priority[state[letter]]) {
-                state[letter] = color;
+            if (!state[letter] || priority[stateClass] > priority[state[letter]]) {
+                state[letter] = stateClass;
             }
         }
 
         function applyKeyboardState(state) {
-            for (const [letter, color] of Object.entries(state)) {
+            for (const [letter, stateClass] of Object.entries(state)) {
                 const key = document.querySelector(`.key[data-key="${letter.toLowerCase()}"]`);
                 if (key) {
-                    key.style.backgroundColor = color;
-                    key.style.borderColor = color;
-                    key.style.color = 'white';
+                    key.classList.remove(STATE_CORRECT, STATE_PRESENT, STATE_ABSENT);
+                    key.classList.add(stateClass);
                 }
             }
         }
@@ -380,12 +404,12 @@
                 messageElement.textContent = '';
                 if (currentGuess.length !== WORD_LENGTH) {
                     messageElement.textContent = `단어는 ${WORD_LENGTH}글자여야 합니다.`;
-                    shakeGrid();
+                    shakeRow();
                     return;
                 }
                 if (validWordsSet.size > 0 && !validWordsSet.has(currentGuess)) {
                     messageElement.textContent = "단어 목록에 없는 단어입니다.";
-                    shakeGrid();
+                    shakeRow();
                     return;
                 }
                 guesses.push(currentGuess);
@@ -400,15 +424,25 @@
                 messageElement.textContent = '';
             } else if (/^[A-Za-z]$/.test(key) && currentGuess.length < WORD_LENGTH) {
                 currentGuess += key.toUpperCase();
+                messageElement.textContent = '';
             }
             updateGrid();
         }
 
-        function shakeGrid() {
-            wordGrid.classList.add('shake');
-            wordGrid.addEventListener('animationend', () => {
-                wordGrid.classList.remove('shake');
-            }, { once: true });
+        function shakeRow() {
+            const start_idx = guesses.length * WORD_LENGTH;
+            const end_idx = start_idx + WORD_LENGTH;
+            const letterBoxes = wordGrid.children;
+
+            for (let i = start_idx; i < end_idx; i++) {
+                const letterBox = letterBoxes[i];
+                letterBox.classList.remove('shake');    // Remove the class in case it's still present
+                void letterBox.offsetWidth;             // Force a reflow by accessing an offset property
+                letterBox.classList.add('shake');
+                letterBox.addEventListener('animationend', () => {
+                    letterBox.classList.remove('shake');
+                }, { once: true });
+            }
         }
 
         document.querySelectorAll('.key').forEach(button => {
