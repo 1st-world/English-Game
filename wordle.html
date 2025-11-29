@@ -88,9 +88,9 @@
 
         function hideDialog(element) {
             const dialog = element.closest('.dialog-overlay') || element;
-            
             dialog.style.visibility = 'hidden';
             dialog.style.opacity = '0';
+            wordGrid.focus();
         }
 
         backBtn.addEventListener('click', function() {
@@ -396,11 +396,15 @@
 
         function handleKeyDown(event) {
             let key = event.key || (event.keyCode !== undefined ? String.fromCharCode(event.keyCode) : '');
+            const gameFocusAllowList = [wordGrid, document.body, null];
+            const isGamePlayable = gameFocusAllowList.includes(document.activeElement);
 
             if (key === 'Escape') return hideDialog(howtoPlayDialog);
+            if (!isGamePlayable) return;
             if (guesses.length >= MAX_GUESSES || isGameEnd) return;
 
             if (key === 'Enter' || key === 'Space' || key === ' ') {
+                event.preventDefault();
                 messageElement.textContent = '';
                 if (currentGuess.length !== WORD_LENGTH) {
                     messageElement.textContent = `단어는 ${WORD_LENGTH}글자여야 합니다.`;
@@ -446,6 +450,10 @@
         }
 
         document.querySelectorAll('.key').forEach(button => {
+            button.addEventListener('mousedown', (event) => {
+                event.preventDefault();
+            });
+
             button.addEventListener('click', (event) => {
                 const keyboardEvent = new KeyboardEvent('keydown', {key: event.target.getAttribute('data-key')});
                 handleKeyDown(keyboardEvent);
