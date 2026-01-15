@@ -6,16 +6,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wordle Game</title>
     <link rel="icon" href="../../assets/favicon.png">
-    <link rel="stylesheet" href="../../css/common.css">
     <link rel="stylesheet" href="https://hangeul.pstatic.net/hangeul_static/css/nanum-square-neo.css">
-    <style></style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../css/common.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <button class="btn btn-back" id="back-btn">Back</button>
-    <button class="btn btn-help" id="help-btn">Help</button>
+    <header class="app-header">
+        <a href="../../index.html" class="icon-btn" title="로비로 돌아가기">
+            <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <h1 class="header-title">Wordle</h1>
+        <button class="icon-btn" id="help-btn" title="게임 방법">
+            <i class="fa-solid fa-circle-question"></i>
+        </button>
+    </header>
 
     <div id="game-container">
-        <h1>Wordle Game</h1>
         <div id="word-grid" tabindex="0"></div>
         <div id="message"></div>
         <div id="definition"></div>
@@ -44,7 +51,7 @@
               <button class="key" tabindex="-1" data-key="l">L</button>
             </div>
             <div class="row">
-              <button class="key special" tabindex="-1" data-key="Backspace">⌫</button>
+              <button class="key special" tabindex="-1" data-key="Backspace"><i class="fa-solid fa-delete-left"></i></button>
               <button class="key" tabindex="-1" data-key="z">Z</button>
               <button class="key" tabindex="-1" data-key="x">X</button>
               <button class="key" tabindex="-1" data-key="c">C</button>
@@ -52,18 +59,21 @@
               <button class="key" tabindex="-1" data-key="b">B</button>
               <button class="key" tabindex="-1" data-key="n">N</button>
               <button class="key" tabindex="-1" data-key="m">M</button>
-              <button class="key special" tabindex="-1" data-key="Enter">Enter</button>
+              <button class="key special" tabindex="-1" data-key="Enter"><i class="fa-solid fa-turn-down fa-rotate-90"></i></button>
             </div>
         </div>
-        <button class="key" id="new-game-btn" onclick="initializeGame()">New Game</button>
+        <button class="key special" id="new-game-btn" onclick="initializeGame()">New Game</button>
     </div>
 
     <div class="dialog-overlay" id="howtoPlayDialog">
         <div class="dialog-content">
             <h2>How to Play</h2>
+            <button class="dialog-close-btn" onclick="hideDialog(this)" title="닫기">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
             <ul>
                 <li>5글자의 영단어를 추측해야 합니다.</li>
-                <li>추측한 단어의 정확성을 글자마다 색상으로 표시:
+                <li>추측한 단어의 정확성을 글자마다 색으로 표시:
                     <ul>
                         <li><span class="color-box" style="background-color: #6aaa64;"></span>녹색: 정확한 위치의 정확한 글자</li>
                         <li><span class="color-box" style="background-color: #c9b458;"></span>황색: 단어에 포함되지만 위치가 다른 글자</li>
@@ -72,30 +82,30 @@
                 </li>
                 <li>단어 입력은 최대 6번까지 가능합니다.</li>
             </ul>
-            <button class="btn btn-close" onclick="hideDialog(this)">닫기</button>
+            <div class="dialog-footer">
+                <i class="fa-solid fa-chevron-left dialog-nav-btn" title="이전"></i>
+                <div class="pagination-dots">
+                    <div class="dot active"></div>
+                </div>
+                <i class="fa-solid fa-chevron-right dialog-nav-btn" title="다음"></i>
+            </div>
         </div>
     </div>
 
+    <script src="../../js/common.js"></script>
     <script>
-        const backBtn = document.getElementById('back-btn');
         const helpBtn = document.getElementById('help-btn');
         const howtoPlayDialog = document.getElementById('howtoPlayDialog');
 
         function showDialog(dialog) {
-            dialog.style.visibility = 'visible';
-            dialog.style.opacity = '1';
+            dialog.classList.add('open');
         }
 
         function hideDialog(element) {
             const dialog = element.closest('.dialog-overlay') || element;
-            dialog.style.visibility = 'hidden';
-            dialog.style.opacity = '0';
+            dialog.classList.remove('open');
             wordGrid.focus();
         }
-
-        backBtn.addEventListener('click', function() {
-            window.history.back();
-        });
 
         helpBtn.addEventListener('click', function(event) {
             event.preventDefault();
@@ -201,7 +211,6 @@
 
         async function initializeGame() {
             newGameBtn.disabled = true;
-            newGameBtn.style.cursor = 'default';
             messageElement.textContent = '';
             definitionElement.textContent = '';
 
@@ -248,13 +257,12 @@
             })
             wordGrid.focus();
             newGameBtn.disabled = false;
-            newGameBtn.style.cursor = 'pointer';
             isGameEnd = false;
         }
 
         function initializeGrid() {
             wordGrid.style.setProperty('--word-length', WORD_LENGTH);
-            updateLetterBoxSize();
+            wordGrid.style.setProperty('--max-guesses', MAX_GUESSES);
 
             const isEmpty = (wordGrid.children.length === 0) || (guesses.length === 0 && currentGuess === '');
             if (isEmpty) {
@@ -289,16 +297,6 @@
                     }, { once: true });
                 }
             }
-        }
-
-        function updateLetterBoxSize() {
-            const totalPadding = 20;
-            const totalGap = (WORD_LENGTH - 1) * parseFloat(getComputedStyle(wordGrid).getPropertyValue('gap').trim());
-            const minWidth = 30;
-            const maxWidth = 50;
-            let boxWidth = Math.floor((wordGrid.parentElement.clientWidth - totalPadding - totalGap) / WORD_LENGTH);
-            boxWidth = Math.max(minWidth, Math.min(maxWidth, boxWidth));
-            document.documentElement.style.setProperty('--letter-box-size', `${boxWidth}px`);
         }
 
         function updateGrid() {
@@ -455,14 +453,13 @@
             });
 
             button.addEventListener('click', (event) => {
-                const keyboardEvent = new KeyboardEvent('keydown', {key: event.target.getAttribute('data-key')});
+                const key = event.currentTarget.getAttribute('data-key');
+                const keyboardEvent = new KeyboardEvent('keydown', {key: key});
                 handleKeyDown(keyboardEvent);
             });
         });
 
         document.addEventListener('keydown', handleKeyDown);
-
-        window.addEventListener('resize', updateLetterBoxSize);
 
         initializeGame();
     </script>

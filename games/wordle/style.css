@@ -1,0 +1,219 @@
+:root {
+  --color-correct: #6aaa64;
+  --color-present: #c9b458;
+  --color-absent: #787c7e;
+}
+
+.dialog-content .color-box {
+  display: inline-block;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-right: 0.5rem;
+  border-radius: 0.25rem;
+  vertical-align: middle;
+}
+
+#game-container {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin: 0 auto;
+  overflow-x: hidden;
+}
+
+#word-grid {
+  display: grid;
+  grid-template-rows: repeat(var(--max-guesses, 6), 1fr);
+  grid-template-columns: repeat(var(--word-length, 5), 1fr);
+  width: 100%;
+  max-width: min(calc(var(--word-length, 5) * 3.75rem), 100%);
+  margin: auto auto 0.5rem;
+  gap: 0.5rem 0.25rem;
+  transform-style: preserve-3d;
+  outline: none;
+}
+.letter-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  border: 2px solid var(--border-color);
+  border-radius: 0.25rem;
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  font-weight: bold;
+  font-size: min(calc((100vw - 3rem) / var(--word-length, 5) * 0.5), 1.5rem);
+  transition: 0.2s;
+}
+.letter-box[data-status="filled"] {
+  border-color: var(--text-secondary);
+}
+.letter-box.reset-flip {
+  transition: none !important;
+}
+
+.state-correct {
+  border-color: var(--color-correct) !important;
+  background-color: var(--color-correct) !important;
+  color: white !important;
+}
+.state-present {
+  border-color: var(--color-present) !important;
+  background-color: var(--color-present) !important;
+  color: white !important;
+}
+.state-absent {
+  border-color: var(--color-absent) !important;
+  background-color: var(--color-absent) !important;
+  color: white !important;
+}
+
+#message {
+  margin: 1rem auto;
+  font-weight: bold;
+  text-align: center;
+}
+#definition {
+  max-width: 20rem;
+  margin: 0 auto;
+  color: var(--text-secondary);
+  font-style: italic;
+  text-align: center;
+  word-wrap: break-word;
+}
+#definition a,
+#definition a:visited {
+  color: var(--color-external-link);
+}
+
+.keyboard {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin: 1.5rem auto;
+  gap: 0.5rem;
+}
+.row {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  gap: 0.25rem;
+}
+.key {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc((100% - 2.25rem) / 10);
+  max-width: 3.25rem;
+  height: 3.25rem;
+  border: 1px solid color-mix(in srgb, var(--color-absent), transparent 50%);
+  border-radius: 0.25rem;
+  outline: none;
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  font-weight: bold;
+  font-size: min(3.5vw, 1rem);
+  transition: 0.2s;
+}
+.key:hover {
+  background-color: color-mix(in srgb, var(--bg-surface), transparent 25%);
+}
+.key:active {
+  transform: scale(0.95);
+  border-color: var(--color-absent);
+}
+.key.special {
+  width: calc((100% - 2.25rem) / 10 * 1.5);
+  max-width: 5rem;
+  border-color: #ffbb33;
+}
+.key.special:active {
+  border-color: #ff9933;
+}
+
+#new-game-btn {
+  width: auto;
+  max-width: none;
+  margin: 0 auto auto;
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
+}
+#new-game-btn:focus-visible {
+  outline: auto;
+}
+#new-game-btn:disabled {
+  cursor: default;
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.pop {
+  animation: pop 0.1s ease-in-out;
+}
+
+@keyframes intro-pop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.intro-pop {
+  animation: intro-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) backwards;
+}
+
+@keyframes reset-flip {
+  0% {
+    transform: rotateX(0deg);
+  }
+  50% {
+    transform: rotateX(-90deg);
+  }
+  100% {
+    transform: rotateX(0deg);
+  }
+}
+.reset-flip {
+  animation: reset-flip 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  10%,
+  90% {
+    transform: translateX(-1px);
+  }
+  20%,
+  80% {
+    transform: translateX(2px);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translateX(-4px);
+  }
+  40%,
+  60% {
+    transform: translateX(4px);
+  }
+}
+.shake {
+  animation: shake 0.5s !important;
+}
