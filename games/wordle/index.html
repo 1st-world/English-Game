@@ -68,7 +68,7 @@
     <div class="dialog-overlay" id="howtoPlayDialog">
         <div class="dialog-content">
             <h2>How to Play</h2>
-            <button class="dialog-close-btn" onclick="hideDialog(this)" title="닫기">
+            <button class="dialog-close-btn" data-dialog-close title="닫기">
                 <i class="fa-solid fa-xmark"></i>
             </button>
             <ul>
@@ -94,30 +94,6 @@
 
     <script src="../../js/common.js"></script>
     <script>
-        const helpBtn = document.getElementById('help-btn');
-        const howtoPlayDialog = document.getElementById('howtoPlayDialog');
-
-        function showDialog(dialog) {
-            dialog.classList.add('open');
-        }
-
-        function hideDialog(element) {
-            const dialog = element.closest('.dialog-overlay') || element;
-            dialog.classList.remove('open');
-            wordGrid.focus();
-        }
-
-        helpBtn.addEventListener('click', function(event) {
-            event.preventDefault();
-            showDialog(howtoPlayDialog);
-        });
-
-        howtoPlayDialog.addEventListener('click', function(event) {
-            if (event.target === howtoPlayDialog) {
-                hideDialog(howtoPlayDialog);
-            }
-        });
-
         let WORD_LENGTH = 5;
         const MAX_GUESSES = 6;
         let secretWord = '';
@@ -132,11 +108,22 @@
         const STATE_PRESENT = 'state-present';
         const STATE_ABSENT = 'state-absent';
 
+        const helpBtn = document.getElementById('help-btn');
+        const howtoPlayDialog = document.getElementById('howtoPlayDialog');
         const wordGrid = document.getElementById('word-grid');
         const messageElement = document.getElementById('message');
         const definitionElement = document.getElementById('definition');
         const keyboardElement = document.getElementById('keyboard');
         const newGameBtn = document.getElementById('new-game-btn');
+
+        helpBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            DialogManager.open(howtoPlayDialog);
+        });
+
+        howtoPlayDialog.addEventListener('dialog-closed', () => {
+            wordGrid.focus();
+        });
 
         async function loadLocalWords() {
             try {
@@ -397,7 +384,6 @@
             const gameFocusAllowList = [wordGrid, document.body, null];
             const isGamePlayable = gameFocusAllowList.includes(document.activeElement);
 
-            if (key === 'Escape') return hideDialog(howtoPlayDialog);
             if (!isGamePlayable) return;
             if (guesses.length >= MAX_GUESSES || isGameEnd) return;
 
