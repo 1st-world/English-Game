@@ -106,14 +106,40 @@ const DialogManager = {
     }
 };
 
+/**
+ * @param {string} message - Message text to display
+ * @param {number|null} duration - Duration the message is shown (in milliseconds, default is null)
+ */
+function showToast(message, duration = null) {
+    let toast = document.querySelector('.toast-msg');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.className = 'toast-msg';
+        document.body.appendChild(toast);
+    }
+
+    toast.textContent = message;
+
+    if (toast.hideTimeout) {
+        clearTimeout(toast.hideTimeout);
+        toast.hideTimeout = null;
+    }
+
+    if (duration && duration > 0) {
+        toast.hideTimeout = setTimeout(() => {
+            toast.textContent = '';
+        }, duration);
+    }
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     DialogManager.init();
 
     const settingsBtn = document.querySelector('.icon-btn[title="설정"]');
     if (settingsBtn) {
-        settingsBtn.addEventListener('click', () => {
-            alert('설정 메뉴는 준비 중입니다!'); 
+        settingsBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            showToast('설정 메뉴는 준비 중입니다.', 1500)
         });
     }
 });

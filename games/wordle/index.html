@@ -22,9 +22,10 @@
         </button>
     </header>
 
+    <div class="toast-msg"></div>
+
     <div id="game-container">
         <div id="word-grid" tabindex="0"></div>
-        <div id="message"></div>
         <div id="definition"></div>
         <div class="keyboard" id="keyboard">
             <div class="row">
@@ -111,7 +112,6 @@
         const helpBtn = document.getElementById('help-btn');
         const howtoPlayDialog = document.getElementById('howtoPlayDialog');
         const wordGrid = document.getElementById('word-grid');
-        const messageElement = document.getElementById('message');
         const definitionElement = document.getElementById('definition');
         const keyboardElement = document.getElementById('keyboard');
         const newGameBtn = document.getElementById('new-game-btn');
@@ -198,14 +198,14 @@
 
         async function initializeGame() {
             newGameBtn.disabled = true;
-            messageElement.textContent = '';
+            showToast('');
             definitionElement.textContent = '';
 
             if (validWordsSet.size === 0) {
                 const success = await loadLocalWords();
                 if (!success) {
                     alert('Failed to load local words list. Please check your files or contact the administrator.');
-                    messageElement.textContent = '오류가 발생했습니다.';
+                    showToast('오류가 발생했습니다.');
                     return;
                 }
             }
@@ -214,9 +214,9 @@
             while (true) {
                 attempts++;
                 if (attempts === 1) {
-                    messageElement.textContent = '로드 중...';
+                    showToast('로드 중…');
                 } else {
-                    messageElement.textContent = `로드 중... (재시도: ${attempts}회)`;
+                    showToast(`로드 중… (${attempts})`);
                 }
                 secretWord = await getRandomWord();
                 if (!validWordsSet.has(secretWord)) continue;
@@ -230,7 +230,7 @@
                         continue;
                     }
                 } catch (error) {
-                    console.warn("Dictionary API down. Starting without definition.");
+                    console.warn('Dictionary API down. Starting without definition.');
                     secretWordDefinition = "⚠️ The definition could not be loaded due to connection issues.";
                     break;
                 }
@@ -238,7 +238,7 @@
             initializeGrid();
             currentGuess = '';
             guesses = [];
-            messageElement.textContent = '';
+            showToast('');
             document.querySelectorAll('.key').forEach(key => {
                 key.classList.remove(STATE_CORRECT, STATE_PRESENT, STATE_ABSENT);
             })
@@ -372,9 +372,9 @@
         async function handleGameEnd(isWin) {
             isGameEnd = true;
             if (isWin) {
-                messageElement.textContent = '축하합니다! 정답입니다!';
+                showToast('축하합니다! 정답입니다!');
             } else {
-                messageElement.textContent = `GAME OVER! 정답은 ${secretWord} 입니다.`;
+                showToast(`GAME OVER! 정답은 ${secretWord} 입니다.`);
             }
             definitionElement.innerHTML = `정답의 의미: <a href="https://en.wiktionary.org/wiki/${secretWord.toLowerCase()}" target="_blank" rel="noopener noreferrer" title="자세히 보기">${secretWordDefinition}</a>`;
         }
@@ -389,14 +389,14 @@
 
             if (key === 'Enter' || key === 'Space' || key === ' ') {
                 event.preventDefault();
-                messageElement.textContent = '';
+                showToast('');
                 if (currentGuess.length !== WORD_LENGTH) {
-                    messageElement.textContent = `단어는 ${WORD_LENGTH}글자여야 합니다.`;
+                    showToast(`단어는 ${WORD_LENGTH}글자여야 합니다.`, 1500);
                     shakeRow();
                     return;
                 }
                 if (validWordsSet.size > 0 && !validWordsSet.has(currentGuess)) {
-                    messageElement.textContent = "단어 목록에 없는 단어입니다.";
+                    showToast('단어 목록에 없는 단어입니다.', 1500);
                     shakeRow();
                     return;
                 }
@@ -409,10 +409,10 @@
                 currentGuess = '';
             } else if (key === 'Backspace') {
                 currentGuess = currentGuess.slice(0, -1);
-                messageElement.textContent = '';
+                showToast('');
             } else if (/^[A-Za-z]$/.test(key) && currentGuess.length < WORD_LENGTH) {
                 currentGuess += key.toUpperCase();
-                messageElement.textContent = '';
+                showToast('');
             }
             updateGrid();
         }
