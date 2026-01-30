@@ -1,6 +1,28 @@
 const DialogManager = {
     prevFocusedElement: null,
 
+    init: function() {
+        document.addEventListener('click', (event) => {
+            const closeBtn = event.target.closest('[data-dialog-close]');
+            if (closeBtn) {
+                const dialog = closeBtn.closest('.dialog-overlay');
+                this.close(dialog);
+            }
+            if (event.target.classList.contains('dialog-overlay')) {
+                this.close(event.target);
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                const openedDialog = document.querySelector('.dialog-overlay.open');
+                if (openedDialog) {
+                    this.close(openedDialog);
+                }
+            }
+        });
+    },
+
     /**
      * @param {HTMLElement} dialog - Dialog element to open
      */
@@ -74,37 +96,120 @@ const DialogManager = {
                 lastElement.focus();
                 event.preventDefault();
             }
-        } 
-        else {
+        } else {
             if (document.activeElement === lastElement) {
                 firstElement.focus();
                 event.preventDefault();
             }
         }
-    },
-
-    init: function() {
-        document.addEventListener('click', (event) => {
-            const closeBtn = event.target.closest('[data-dialog-close]');
-            if (closeBtn) {
-                const dialog = closeBtn.closest('.dialog-overlay');
-                this.close(dialog);
-            }
-            if (event.target.classList.contains('dialog-overlay')) {
-                this.close(event.target);
-            }
-        });
-
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape') {
-                const openedDialog = document.querySelector('.dialog-overlay.open');
-                if (openedDialog) {
-                    this.close(openedDialog);
-                }
-            }
-        });
     }
 };
+
+
+const SettingsManager = {
+    prevTheme: null,
+    systemMediaQueryDark: window.matchMedia('(prefers-color-scheme: dark)'),
+
+    init: function() {
+        this.bindEvents();
+        this.systemMediaQueryDark.addEventListener('change', () => {
+            if (this.getCurrentTheme() === 'auto' && !this.isHighContrast()) {
+                this.applyThemeToDOM('auto');
+            }
+        });
+        this.applySavedSettings();
+    },
+
+    getCurrentTheme: function() {
+        return localStorage.getItem('theme') || 'auto';
+    },
+
+    isHighContrast: function() {
+        return localStorage.getItem('highContrast') === 'true';
+    },
+
+    applySavedSettings: function() {
+        if (this.isHighContrast()) {
+            this.setHighContrast(true);
+        } else {
+            this.setTheme(this.getCurrentTheme());
+        }
+    },
+
+    bindEvents: function() {
+        const themeRadios = document.querySelectorAll('input[name="theme"]');
+        themeRadios.forEach(radio => {
+            radio.addEventListener('change', (event) => {
+                if (this.isHighContrast()) {
+                    this.setHighContrast(false); 
+                    showToast('고대비 모드가 해제되었습니다.', 1500);
+                }
+                this.setTheme(event.target.value);
+            });
+        });
+
+        const hcToggle = document.getElementById('high-contrast-toggle');
+        if (hcToggle) {
+            hcToggle.addEventListener('change', (event) => {
+                this.setHighContrast(event.target.checked);
+            });
+        }
+    },
+
+    /**
+     * @param {string} theme - Select a theme: 'auto', 'light', or 'dark'
+     */
+    setTheme: function(theme) {
+        localStorage.setItem('theme', theme);
+        this.updateThemeUI(theme);
+        this.applyThemeToDOM(theme);
+    },
+
+    updateThemeUI: function(theme) {
+        const themeRadio = document.querySelector(`input[name="theme"][value="${theme}"]`);
+        if (themeRadio) themeRadio.checked = true;
+    },
+
+    applyThemeToDOM: function(theme) {
+        if (theme === 'auto') {
+            theme = this.systemMediaQueryDark.matches ? 'dark' : 'light';
+        }
+        if (theme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+        }
+    },
+
+    /**
+     * @param {boolean} enabled - Whether to enable High Contrast mode
+     */
+    setHighContrast: function(enabled) {
+        const hcToggle = document.getElementById('high-contrast-toggle');
+
+        if (enabled) {
+            this.prevTheme = this.getCurrentTheme();
+
+            document.documentElement.setAttribute('data-high-contrast', 'true');
+            localStorage.setItem('highContrast', 'true');
+            if (hcToggle) hcToggle.checked = true;
+
+            this.updateThemeUI('dark');
+            this.applyThemeToDOM('dark');
+        } else {
+            document.documentElement.removeAttribute('data-high-contrast');
+            localStorage.setItem('highContrast', 'false');
+            if (hcToggle) hcToggle.checked = false;
+
+            const themeToRestore = this.prevTheme || this.getCurrentTheme();
+            this.updateThemeUI(themeToRestore);
+            this.applyThemeToDOM(themeToRestore);
+
+            this.prevTheme = null;
+        }
+    }
+};
+
 
 /**
  * @param {string} message - Message text to display
@@ -118,6 +223,11 @@ function showToast(message, duration = null) {
         document.body.appendChild(toast);
     }
 
+    if (!message) {
+        toast.classList.remove('show');
+        return;
+    }
+
     toast.textContent = message;
 
     if (toast.hideTimeout) {
@@ -125,21 +235,29 @@ function showToast(message, duration = null) {
         toast.hideTimeout = null;
     }
 
+    void toast.offsetWidth;  // Force a reflow by accessing an offset property
+
+    toast.classList.add('show');
+
     if (duration && duration > 0) {
         toast.hideTimeout = setTimeout(() => {
-            toast.textContent = '';
+            toast.classList.remove('show');
         }, duration);
     }
 }
 
+
 document.addEventListener('DOMContentLoaded', () => {
     DialogManager.init();
+    SettingsManager.init();
 
-    const settingsBtn = document.querySelector('.icon-btn[title="설정"]');
-    if (settingsBtn) {
+    const settingsBtn = document.getElementById('settings-btn');
+    const settingsDialog = document.getElementById('settings-dialog');
+
+    if (settingsBtn && settingsDialog) {
         settingsBtn.addEventListener('click', (event) => {
             event.preventDefault();
-            showToast('설정 메뉴는 준비 중입니다.', 1500)
+            DialogManager.open(settingsDialog);
         });
     }
 });

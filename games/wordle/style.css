@@ -2,6 +2,12 @@
   --color-correct: #6aaa64;
   --color-present: #c9b458;
   --color-absent: #787c7e;
+  --color-special: #ffbb33;
+}
+:root[data-high-contrast="true"] {
+  --color-correct: #69f0ae;
+  --color-present: #ffd740;
+  --color-absent: #bdbdbd;
 }
 
 .dialog-content .color-box {
@@ -58,17 +64,17 @@
 .state-correct {
   border-color: var(--color-correct) !important;
   background-color: var(--color-correct) !important;
-  color: white !important;
+  color: var(--color-white) !important;
 }
 .state-present {
   border-color: var(--color-present) !important;
   background-color: var(--color-present) !important;
-  color: white !important;
+  color: var(--color-white) !important;
 }
 .state-absent {
   border-color: var(--color-absent) !important;
   background-color: var(--color-absent) !important;
-  color: white !important;
+  color: var(--color-white) !important;
 }
 
 #definition {
@@ -123,10 +129,10 @@
 .key.special {
   width: calc((100% - 2.25rem) / 10 * 1.5);
   max-width: 5rem;
-  border-color: #ffbb33;
+  border-color: var(--color-special);
 }
 .key.special:active {
-  border-color: #ff9933;
+  border-color: var(--color-special);
 }
 
 #new-game-btn {

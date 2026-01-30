@@ -63,12 +63,12 @@
               <button class="key special" tabindex="-1" data-key="Enter"><i class="fa-solid fa-turn-down fa-rotate-90"></i></button>
             </div>
         </div>
-        <button class="key special" id="new-game-btn" onclick="initializeGame()">New Game</button>
+        <button class="key special" id="new-game-btn" onclick="initializeGame()">새 게임</button>
     </div>
 
-    <div class="dialog-overlay" id="howtoPlayDialog">
+    <div class="dialog-overlay" id="how2play-dialog">
         <div class="dialog-content">
-            <h2>How to Play</h2>
+            <h2>게임 방법</h2>
             <button class="dialog-close-btn" data-dialog-close title="닫기">
                 <i class="fa-solid fa-xmark"></i>
             </button>
@@ -110,7 +110,7 @@
         const STATE_ABSENT = 'state-absent';
 
         const helpBtn = document.getElementById('help-btn');
-        const howtoPlayDialog = document.getElementById('howtoPlayDialog');
+        const how2playDialog = document.getElementById('how2play-dialog');
         const wordGrid = document.getElementById('word-grid');
         const definitionElement = document.getElementById('definition');
         const keyboardElement = document.getElementById('keyboard');
@@ -118,10 +118,10 @@
 
         helpBtn.addEventListener('click', (event) => {
             event.preventDefault();
-            DialogManager.open(howtoPlayDialog);
+            DialogManager.open(how2playDialog);
         });
 
-        howtoPlayDialog.addEventListener('dialog-closed', () => {
+        how2playDialog.addEventListener('dialog-closed', () => {
             wordGrid.focus();
         });
 
